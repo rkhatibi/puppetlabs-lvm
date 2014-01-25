@@ -28,6 +28,10 @@ Puppet::Type.type(:logical_volume).provide :lvm do
             args.push('--extents', '100%FREE')
         end
 
+        if @resource[:stripes]
+            args.push('-i', @resource[:stripes], '-I', @resource[:stripesize])
+        end
+
         args << @resource[:volume_group]
         lvcreate(*args)
     end
@@ -39,6 +43,24 @@ Puppet::Type.type(:logical_volume).provide :lvm do
 
     def exists?
         lvs(@resource[:volume_group]) =~ lvs_pattern
+    end
+
+    def stripes?
+        max = 4 #max = vgs('--rows','--options pv_count', @resource[:volume_group]).split.last.to_i
+        if @resource[:stripes].to_i == max
+          return max
+        else 
+          return [@resource[:stripes].to_i, max].min
+        end
+    end
+
+    def stripesize?
+        max = 512
+        if @resource[:stripesize].to_i == max
+          return max
+        else
+          return [@resource[:stripesize].to_i, max].min
+        end
     end
 
     def size

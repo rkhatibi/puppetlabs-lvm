@@ -45,6 +45,24 @@ Puppet::Type.newtype(:logical_volume) do
         end
     end
 
+    newparam(:stripe_size) do
+        desc "Size of the stripe. This will only apply to newly-created volumes"
+        validate do |value|
+            unless value =~ /^(4|8|16|32|64|128|256|512)$/
+                raise ArgumentError , "#{value} is not a valid number stripe size"
+            end
+        end
+    end
+
+    newparam(:stripe, :required_features => [:stripe_size]) do
+        desc "The number of physical volumes to stripe cross. This will only apply to newly-created volumes"
+        validate do |value|
+            unless value.to_i >= 2 && value.to_i <= :max.to_i
+                raise ArgumentError , "#{value} is not a valid number of physical volumes"
+            end
+        end
+    end
+
     newparam(:type) do
       desc "Configures the logical volume type. AIX only"
     end
